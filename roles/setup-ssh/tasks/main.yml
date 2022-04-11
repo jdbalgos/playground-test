@@ -1,0 +1,26 @@
+---
+- name: restart network
+  shell:
+    cmd: "/usr/bin/lxc-attach -n {{ vmid }} -- systemctl restart network && sleep 3"
+    creates: "{{ node_dir }}/{{ node_name }}/ssh/{{ vmid }}"
+- name: dnf install sshd
+  shell:
+    cmd: "/usr/bin/lxc-attach -n {{ vmid }} -- /usr/bin/dnf install -y openssh-server-8.0p1 || /usr/bin/dnf install -y openssh-server-8.0p1"
+    creates: "{{ node_dir }}/{{ node_name }}/ssh/{{ vmid }}"
+- name: enable sshd
+  shell:
+    cmd: "/usr/bin/lxc-attach -n {{ vmid }} -- /usr/bin/systemctl enable --now sshd"
+    creates: "{{ node_dir }}/{{ node_name }}/ssh/{{ vmid }}"
+  register: ssh_enabled
+- name: create directory
+  file:
+    path: "{{ node_dir }}/{{ node_name }}/ssh"
+    state: directory
+- name:
+  shell:
+    cmd: "touch {{ node_dir }}/{{ node_name }}/ssh/{{ vmid }}"
+  when: ssh_enabled.changed
+- name: pause a while
+  pause:
+    seconds: 10
+  when: ssh_enabled.changed

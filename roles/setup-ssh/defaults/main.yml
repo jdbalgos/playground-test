@@ -1,0 +1,4 @@
+---
+vmid: "{{ vars_server_vmid }}"
+node_dir: "/etc/pve/nodes"
+node_name: "pve01"

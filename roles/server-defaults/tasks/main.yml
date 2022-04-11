@@ -1,0 +1,53 @@
+---
+- name: update all packages
+  dnf:
+    name: '*'
+    state: latest
+- name: install other packages as well
+  dnf:
+    name:
+      - dnf-plugins-core
+      - less
+      - bash-completion
+      - vim
+      - wget
+- name: install firewalld
+  dnf:
+    name: firewalld
+  when: ansible_hostname !=  "gateway"
+- name: enable firewalld
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+  when: ansible_hostname !=  "gateway"
+- name: add vimrc to root home and skel
+  copy:
+    src: "files/vimrc"
+    dest: "{{ item }}"
+  with_items:
+    - "/root/.vimrc"
+    - "/etc/skel/.vimrc"
+- name: add user deve
+  user:
+    name: "{{ user_name }}"
+    groups: "wheel"
+    password: "{{ user_pass }}"
+    shell: "/bin/bash"
+- name: change timezone
+  timezone:
+    name: Asia/Manila
+- name: create ssh directory for deve
+  file:
+    state: directory
+    path: /home/deve/.ssh
+    owner: deve
+    group: deve
+    mode: '0700'
+- name: create authorized_keys for deve
+  copy:
+    src: files/id_rsa_deve.pub
+    dest: /home/deve/.ssh/authorized_keys
+    owner: deve
+    group: deve
+
